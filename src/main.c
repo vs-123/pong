@@ -73,6 +73,7 @@ enum screen_t
 {
 	SCREEN_PONG,
 	SCREEN_GAME_OVER,
+	SCREEN_MENU,
 };
 
 enum collision_t
@@ -109,6 +110,12 @@ void game_pong_handle_input (struct game_t *game);
 void game_pong_update (struct game_t *game);
 
 void game_pong_render (struct game_t *game);
+
+void game_menu_handle_input (struct game_t *game);
+
+void game_menu_update (struct game_t *game);
+
+void game_menu_render (struct game_t *game);
 
 void game_handle_input (struct game_t *game);
 
@@ -178,7 +185,7 @@ game_init (void)
 		.paddle_player = paddle_init (0),
 		.paddle_ai     = paddle_init (WINDOW_WIDTH - PADDLE_SIZE.x),
 		.ball          = ball_init (),
-		.screen        = SCREEN_PONG,
+		.screen        = SCREEN_MENU,
 	};
 }
 
@@ -318,8 +325,8 @@ game_game_over_render (struct game_t *game)
 {
 	ClearBackground (COLOUR_BACKGROUND);
 
-	int title_width    = MeasureText ("GAME OVER", 80);
-	int sub_width = MeasureText ("Press R to Restart", 20);
+	int title_width = MeasureText ("GAME OVER", 80);
+	int sub_width   = MeasureText ("Press R to Restart", 20);
 
 	DrawText ("GAME OVER",
 	          (WINDOW_WIDTH / 2) - (title_width / 2),
@@ -335,6 +342,47 @@ game_game_over_render (struct game_t *game)
 }
 
 void
+game_menu_handle_input (struct game_t *game)
+{
+	if (IsKeyPressed (KEY_Y))
+		{
+			game->screen = SCREEN_PONG;
+		}
+}
+
+void
+game_menu_update (struct game_t *game)
+{
+}
+
+void
+game_menu_render (struct game_t *game)
+{
+	ClearBackground (COLOUR_BACKGROUND);
+
+	const char *title = "PONG -- vs-123";
+	const char *sub   = "Press Y to begin";
+
+	int title_font_size = 60;
+	int sub_font_size   = 20;
+
+	int title_width = MeasureText (title, title_font_size);
+	int sub_width   = MeasureText (sub, sub_font_size);
+
+	DrawText (title,
+	          (WINDOW_WIDTH / 2) - (title_width / 2),
+	          (WINDOW_HEIGHT / 2) - 40,
+	          title_font_size,
+	          COLOUR_PADDLE);
+
+	DrawText (sub,
+	          (WINDOW_WIDTH / 2) - (sub_width / 2),
+	          (WINDOW_HEIGHT / 2) + 40,
+	          sub_font_size,
+	          GRAY);
+}
+
+void
 game_update (struct game_t *game)
 {
 	switch (game->screen)
@@ -344,6 +392,9 @@ game_update (struct game_t *game)
 			break;
 		case SCREEN_GAME_OVER:
 			game_game_over_update (game);
+			break;
+		case SCREEN_MENU:
+			game_menu_update (game);
 			break;
 		default:
 			assert (0 && "INVALID SCREEN");
@@ -361,6 +412,9 @@ game_handle_input (struct game_t *game)
 			break;
 		case SCREEN_GAME_OVER:
 			game_game_over_handle_input (game);
+			break;
+		case SCREEN_MENU:
+			game_menu_handle_input (game);
 			break;
 		default:
 			assert (0 && "INVALID SCREEN");
@@ -401,6 +455,9 @@ game_render (struct game_t *game)
 		case SCREEN_GAME_OVER:
 			game_game_over_render (game);
 			break;
+		case SCREEN_MENU:
+			game_menu_render (game);
+			break;
 		default:
 			assert (0 && "INVALID SCREEN");
 			break;
@@ -413,7 +470,6 @@ main (void)
 	InitWindow (WINDOW_WIDTH, WINDOW_HEIGHT, "Pong");
 	seed               = time (NULL);
 	struct game_t game = game_init ();
-	/* game.screen        = SCREEN_GAME_OVER; */
 
 	while (!WindowShouldClose ())
 		{
