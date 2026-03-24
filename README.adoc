@@ -11,7 +11,7 @@
 
 == SCREENSHOT
 
-image:{raw-url}/assets/pong-gameplay.gif[PONG GAMEPLAY -- vs-123]
+image:{raw-url}/assets/pong-gameplay.mp4[PONG GAMEPLAY -- vs-123]
 
 == FEATURES
 
