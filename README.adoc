@@ -1,11 +1,66 @@
 :em: {sp}--{sp}
 :license: GNU Affero General Public License version 3.0 or later
 :license-link: link:https://www.gnu.org/licenses/agpl-3.0.en.html[]
-:raw-url: https://raw.githubusercontent.com/vs-123/pong/refs/heads
+:raw-url: https://raw.githubusercontent.com/vs-123/pong/refs/heads/main
 
 = PONG
 
-TODO
+*pong* is a simple recreation of the classic arcade table-tennis game "pong". This was built with a focus on deterministic state management and low-latency feedback with the aim to demonstrate a clean C99 implementation of a real-time game loop. 
+
+*pong* utilises Raylib for hardware-accelerated rendering and a custom particle engine for dynamic visual feedback. The code takes a struct-oriented approach where the game logic, input handling and rendering are decoupled via a centralised state structure. This allows for a predictable execution flow and a stable memory footprint even during high-velocity physics calculations.
+
+//== SCREENSHOT
+//
+//image:{raw-url}/assets/pong-gameplay.png[PONG SCREENSHOT -- vs-123]
+
+== FEATURES
+
+* *STATE DRIVEN ARCHITECTURE* {em} The entire application is modeled as a finite state machine. This ensures atomic transitions and prevents logic-bleed between different game phases.
+
+* *DETERMINISTIC PHYSICS* {em} Ball-to-paddle and ball-to-wall collisions are calculated using axis-aligned bounding boxes. The ball's velocity increases by `5%` on each successful hit to scale difficulty dynamically.
+
+* *LINEAR INTERPOLATION AI* {em} The AI opponent utilises a predictive tracking algorithm with a defined speed constant. This mimics a reactive player by interpolating the paddle position towards the ball's center Y coordinate.
+
+* *DYNAMIC PARTICLE SYSTEM* {em} A custom burst-emitter is triggered upon paddle impact. It manages a fixed window array of particles with randomised vectors and linear life fade to provide visual impact without dynamic memory allocation.
+
+* *MACRO EXPANDED DISPATCHERS* {em} Update and Render cycles are handled via X-Macros. This provides a single source of truth for screen registration and hence reduces boilerplate and potential mapping errors.
+
+* *ADAPTIVE PADDLE PHYSICS* {em} The ball's reflection angle is determined by a hit factor calculation. The impact point relative to the paddle's center is normalised to allow the player to aim their shots.
+
+* *MINIMALIST C99 BASE* {em} The project is written with zero external dependencies beyond Raylib and standard headers. This makes the game portable across major operating systems and provides good raw execution speed.
+
+== BUILD INSTRUCTIONS
+
+* Obtain a local copy of this repository with `git` and enter it
++
+[source,]
+----
+  %  git clone https://github.com/vs-123/pong.git
+  %  cd pong
+----
+
+* Ensure you have the following prerequisites:
+** A C99 compliant C compiler
+** Raylib development headers and library
+
+* Create a `build` directory and use CMake to build the project
++
+[source,]
+----
+  %  mkdir build
+  %  cd build
+  %  cmake ..
+  %  cmake --build .
+  %  ls -Fa
+  ./  ../  pong*  compile_commands.json
+----
+
+* You may now execute the binary to start the game
++
+[source,]
+----
+  %  ./pong
+----
 
 == LICENSE
 
