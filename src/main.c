@@ -11,9 +11,13 @@
 /***************/
 
 #define WINDOW_WIDTH 800
+
 #define WINDOW_HEIGHT 800
+
 #define PADDLE_SIZE ((struct Vector2){ .x = 10, .y = 50 })
+
 #define PADDLE_SPEED 0.15
+
 #define BALL_SIZE ((struct Vector2){ .x = 10, .y = 10 })
 
 /********************/
@@ -22,7 +26,9 @@
 
 #define COLOUR_BACKGROUND                                                      \
 	((struct Color){ .r = 33, .b = 33, .g = 33, .a = 255 })
+
 #define COLOUR_PADDLE ((struct Color){ .r = 221, .b = 221, .g = 221, .a = 255 })
+
 #define COLOUR_BALL ((struct Color){ .r = 221, .b = 221, .g = 221, .a = 255 })
 
 /*************/
@@ -46,6 +52,7 @@ struct paddle_t
 };
 
 struct paddle_t paddle_init (float x);
+
 void paddle_render (struct paddle_t *paddle);
 
 struct ball_t
@@ -57,7 +64,9 @@ struct ball_t
 };
 
 struct ball_t ball_init (void);
+
 void ball_render (struct ball_t *ball);
+
 void ball_update (struct ball_t *ball);
 
 enum screen_t
@@ -84,19 +93,27 @@ struct game_t
 };
 
 struct game_t game_init (void);
+
 void game_update_paddle_ai (struct game_t *game);
+
 enum collision_t game_ball_collides_what (struct game_t *game);
 
-void game_pong_handle_input (struct game_t *game);
-void game_pong_update (struct game_t *game);
-void game_pong_render (struct game_t *game);
-
 void game_game_over_handle_input (struct game_t *game);
+
 void game_game_over_update (struct game_t *game);
+
 void game_game_over_render (struct game_t *game);
 
+void game_pong_handle_input (struct game_t *game);
+
+void game_pong_update (struct game_t *game);
+
+void game_pong_render (struct game_t *game);
+
 void game_handle_input (struct game_t *game);
+
 void game_update (struct game_t *game);
+
 void game_render (struct game_t *game);
 
 struct paddle_t
@@ -165,38 +182,6 @@ game_init (void)
 	};
 }
 
-void
-game_pong_handle_input (struct game_t *game)
-{
-	if (IsKeyDown (KEY_W) || IsKeyDown (KEY_UP))
-		{
-			game->paddle_player.pos.y -= game->paddle_player.speed;
-		}
-	if (IsKeyDown (KEY_S) || IsKeyDown (KEY_DOWN))
-		{
-			game->paddle_player.pos.y += game->paddle_player.speed;
-		}
-
-	if (game->paddle_player.pos.y < 0)
-		{
-			game->paddle_player.pos.y = 0;
-		}
-	if (game->paddle_player.pos.y + game->paddle_player.size.y > WINDOW_HEIGHT)
-		{
-			game->paddle_player.pos.y = WINDOW_HEIGHT - game->paddle_player.size.y;
-		}
-}
-
-void
-game_game_over_handle_input (struct game_t *game)
-{
-	if (IsKeyPressed (KEY_R))
-		{
-			game->ball   = ball_init ();
-			game->screen = SCREEN_PONG;
-		}
-}
-
 enum collision_t
 game_ball_collides_what (struct game_t *game)
 {
@@ -244,6 +229,28 @@ game_ball_collides_what (struct game_t *game)
 }
 
 void
+game_pong_handle_input (struct game_t *game)
+{
+	if (IsKeyDown (KEY_W) || IsKeyDown (KEY_UP))
+		{
+			game->paddle_player.pos.y -= game->paddle_player.speed;
+		}
+	if (IsKeyDown (KEY_S) || IsKeyDown (KEY_DOWN))
+		{
+			game->paddle_player.pos.y += game->paddle_player.speed;
+		}
+
+	if (game->paddle_player.pos.y < 0)
+		{
+			game->paddle_player.pos.y = 0;
+		}
+	if (game->paddle_player.pos.y + game->paddle_player.size.y > WINDOW_HEIGHT)
+		{
+			game->paddle_player.pos.y = WINDOW_HEIGHT - game->paddle_player.size.y;
+		}
+}
+
+void
 game_pong_update (struct game_t *game)
 {
 	ball_update (&game->ball);
@@ -273,8 +280,34 @@ game_pong_update (struct game_t *game)
 }
 
 void
+game_pong_render (struct game_t *game)
+{
+	ClearBackground (COLOUR_BACKGROUND);
+	paddle_render (&game->paddle_player);
+	paddle_render (&game->paddle_ai);
+	ball_render (&game->ball);
+}
+
+void
+game_game_over_handle_input (struct game_t *game)
+{
+	if (IsKeyPressed (KEY_R))
+		{
+			game->ball   = ball_init ();
+			game->screen = SCREEN_PONG;
+		}
+}
+
+void
 game_game_over_update (struct game_t *game)
 {
+}
+
+void
+game_game_over_render (struct game_t *game)
+{
+	ClearBackground (COLOUR_BACKGROUND);
+	DrawText ("Game Over!", 0, 0, 72, RED);
 }
 
 void
@@ -331,22 +364,6 @@ game_update_paddle_ai (struct game_t *game)
 		{
 			game->paddle_ai.pos.y = WINDOW_HEIGHT - game->paddle_ai.size.y;
 		}
-}
-
-void
-game_pong_render (struct game_t *game)
-{
-	ClearBackground (COLOUR_BACKGROUND);
-	paddle_render (&game->paddle_player);
-	paddle_render (&game->paddle_ai);
-	ball_render (&game->ball);
-}
-
-void
-game_game_over_render (struct game_t *game)
-{
-	ClearBackground (COLOUR_BACKGROUND);
-	DrawText ("Game Over!", 0, 0, 72, RED);
 }
 
 void
