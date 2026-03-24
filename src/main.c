@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -16,9 +17,9 @@
 
 #define PADDLE_SIZE ((struct Vector2){ .x = 10, .y = 50 })
 
-#define PADDLE_SPEED 4
+#define PADDLE_SPEED 250.0f
 
-#define BALL_SPEED 4
+#define BALL_SPEED 250.0f
 
 #define BALL_SIZE ((struct Vector2){ .x = 10, .y = 10 })
 
@@ -178,8 +179,9 @@ ball_render (struct ball_t *ball)
 void
 ball_update (struct ball_t *ball)
 {
-	ball->pos.x += ball->speed.x;
-	ball->pos.y += ball->speed.y;
+	float dt = GetFrameTime ();
+	ball->pos.x += ball->speed.x * dt;
+	ball->pos.y += ball->speed.y * dt;
 }
 
 struct game_t
@@ -246,13 +248,26 @@ game_ball_collides_what (struct game_t *game)
 void
 game_update_paddle_ai (struct game_t *game)
 {
-	if (game->ball.pos.y > game->paddle_ai.pos.y)
+	float dt = GetFrameTime ();
+
+	float ball_center_y   = game->ball.pos.y + (game->ball.size.y / 2);
+	float paddle_center_y = game->paddle_ai.pos.y + (game->paddle_ai.size.y / 2);
+	float distance        = ball_center_y - paddle_center_y;
+
+	if (fabsf (distance) > game->paddle_ai.speed)
 		{
-			game->paddle_ai.pos.y += game->paddle_ai.speed;
+			if (distance > 0)
+				{
+					game->paddle_ai.pos.y += game->paddle_ai.speed * dt;
+				}
+			else
+				{
+					game->paddle_ai.pos.y -= game->paddle_ai.speed * dt;
+				}
 		}
 	else
 		{
-			game->paddle_ai.pos.y -= game->paddle_ai.speed;
+			game->paddle_ai.pos.y += distance;
 		}
 
 	if (game->paddle_ai.pos.y < 0)
@@ -268,13 +283,15 @@ game_update_paddle_ai (struct game_t *game)
 void
 game_pong_handle_input (struct game_t *game)
 {
+	float dt = GetFrameTime ();
+
 	if (IsKeyDown (KEY_W) || IsKeyDown (KEY_UP))
 		{
-			game->paddle_player.pos.y -= game->paddle_player.speed;
+			game->paddle_player.pos.y -= game->paddle_player.speed * dt;
 		}
 	if (IsKeyDown (KEY_S) || IsKeyDown (KEY_DOWN))
 		{
-			game->paddle_player.pos.y += game->paddle_player.speed;
+			game->paddle_player.pos.y += game->paddle_player.speed * dt;
 		}
 
 	if (game->paddle_player.pos.y < 0)
@@ -302,12 +319,22 @@ game_pong_update (struct game_t *game)
 				struct paddle_t *paddle = (collision_entity == COLLISION_PLAYER)
 				                              ? &game->paddle_player
 				                              : &game->paddle_ai;
-				float hit_factor        = 0;
 
-				game->ball.speed.x *= -1.0f;
-				hit_factor = (game->ball.pos.y + (game->ball.size.y / 2))
-				             - (paddle->pos.y + (paddle->size.y / 2));
-				game->ball.speed.y = (hit_factor / (paddle->size.y / 2)) * 2.25;
+				if (collision_entity == COLLISION_PLAYER)
+					{
+						game->ball.pos.x = paddle->pos.x + paddle->size.x;
+					}
+				else
+					{
+						game->ball.pos.x = paddle->pos.x - game->ball.size.x;
+					}
+
+				float hit_factor = (game->ball.pos.y + (game->ball.size.y / 2))
+				                   - (paddle->pos.y + (paddle->size.y / 2));
+				float hit_normalised = hit_factor / (paddle->size.y / 2);
+
+				game->ball.speed.y = hit_normalised * BALL_SPEED * 0.8f;
+				game->ball.speed.x *= -1.05f;
 			}
 			break;
 
@@ -316,6 +343,15 @@ game_pong_update (struct game_t *game)
 			break;
 
 		case COLLISION_VERTICAL_WALL:
+			if (game->ball.pos.y <= 0)
+				{
+					game->ball.pos.y = 0;
+				}
+			else
+				{
+					game->ball.pos.y = WINDOW_HEIGHT - game->ball.size.y;
+				}
+
 			game->ball.speed.y *= -1.0f;
 			break;
 
@@ -480,9 +516,9 @@ main (void)
 
 	while (!WindowShouldClose ())
 		{
-			BeginDrawing ();
 			game_update (&game);
 			game_handle_input (&game);
+			BeginDrawing ();
 			game_render (&game);
 			EndDrawing ();
 		}
