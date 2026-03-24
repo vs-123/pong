@@ -123,6 +123,10 @@ void game_update (struct game_t *game);
 
 void game_render (struct game_t *game);
 
+/********************/
+/*  IMPLEMENTATION  */
+/********************/
+
 struct paddle_t
 paddle_init (float x)
 {
@@ -217,15 +221,18 @@ game_ball_collides_what (struct game_t *game)
 		{
 			return COLLISION_AI;
 		}
+
 	if (CheckCollisionRecs (ball_rect, player_rect))
 		{
 			return COLLISION_PLAYER;
 		}
+
 	if (game->ball.pos.y <= 0
 	    || (game->ball.pos.y + game->ball.size.y) >= WINDOW_HEIGHT)
 		{
 			return COLLISION_VERTICAL_WALL;
 		}
+
 	if (game->ball.pos.x <= 0
 	    || (game->ball.pos.x + game->ball.size.x) >= WINDOW_WIDTH)
 		{
@@ -233,6 +240,28 @@ game_ball_collides_what (struct game_t *game)
 		}
 
 	return COLLISION_NONE;
+}
+
+void
+game_update_paddle_ai (struct game_t *game)
+{
+	if (game->ball.pos.y > game->paddle_ai.pos.y)
+		{
+			game->paddle_ai.pos.y += game->paddle_ai.speed;
+		}
+	else
+		{
+			game->paddle_ai.pos.y -= game->paddle_ai.speed;
+		}
+
+	if (game->paddle_ai.pos.y < 0)
+		{
+			game->paddle_ai.pos.y = 0;
+		}
+	if (game->paddle_ai.pos.y + game->paddle_ai.size.y > WINDOW_HEIGHT)
+		{
+			game->paddle_ai.pos.y = WINDOW_HEIGHT - game->paddle_ai.size.y;
+		}
 }
 
 void
@@ -379,89 +408,63 @@ game_menu_render (struct game_t *game)
 	          (WINDOW_WIDTH / 2) - (sub_width / 2),
 	          (WINDOW_HEIGHT / 2) + 40,
 	          sub_font_size,
-	          GRAY);
+	          GREEN);
 }
+
+#define SCREEN_LIST(X)                                                         \
+	X (SCREEN_MENU, menu)                                                         \
+	X (SCREEN_PONG, pong)                                                         \
+	X (SCREEN_GAME_OVER, game_over)
 
 void
 game_update (struct game_t *game)
 {
+#define AS_UPDATE_CASE(name, prefix)                                           \
+	case name:                                                                    \
+		game_##prefix##_update (game);                                               \
+		break;
 	switch (game->screen)
 		{
-		case SCREEN_PONG:
-			game_pong_update (game);
-			break;
-		case SCREEN_GAME_OVER:
-			game_game_over_update (game);
-			break;
-		case SCREEN_MENU:
-			game_menu_update (game);
-			break;
+			SCREEN_LIST (AS_UPDATE_CASE)
 		default:
 			assert (0 && "INVALID SCREEN");
 			break;
 		}
+#undef AS_UPDATE_CASE
 }
 
 void
 game_handle_input (struct game_t *game)
 {
+#define AS_INPUT_CASE(name, prefix)                                            \
+	case name:                                                                    \
+		game_##prefix##_handle_input (game);                                         \
+		break;
 	switch (game->screen)
 		{
-		case SCREEN_PONG:
-			game_pong_handle_input (game);
-			break;
-		case SCREEN_GAME_OVER:
-			game_game_over_handle_input (game);
-			break;
-		case SCREEN_MENU:
-			game_menu_handle_input (game);
-			break;
+			SCREEN_LIST (AS_INPUT_CASE)
 		default:
 			assert (0 && "INVALID SCREEN");
 			break;
 		}
-}
-
-void
-game_update_paddle_ai (struct game_t *game)
-{
-	if (game->ball.pos.y > game->paddle_ai.pos.y)
-		{
-			game->paddle_ai.pos.y += game->paddle_ai.speed;
-		}
-	else
-		{
-			game->paddle_ai.pos.y -= game->paddle_ai.speed;
-		}
-
-	if (game->paddle_ai.pos.y < 0)
-		{
-			game->paddle_ai.pos.y = 0;
-		}
-	if (game->paddle_ai.pos.y + game->paddle_ai.size.y > WINDOW_HEIGHT)
-		{
-			game->paddle_ai.pos.y = WINDOW_HEIGHT - game->paddle_ai.size.y;
-		}
+#undef AS_INPUT_CASE
 }
 
 void
 game_render (struct game_t *game)
 {
+#define AS_RENDER_CASE(name, prefix)                                           \
+	case name:                                                                    \
+		game_##prefix##_render (game);                                               \
+		break;
 	switch (game->screen)
 		{
-		case SCREEN_PONG:
-			game_pong_render (game);
-			break;
-		case SCREEN_GAME_OVER:
-			game_game_over_render (game);
-			break;
-		case SCREEN_MENU:
-			game_menu_render (game);
-			break;
+			SCREEN_LIST (AS_RENDER_CASE)
 		default:
 			assert (0 && "INVALID SCREEN");
 			break;
 		}
+#undef AS_RENDER_CASE
 }
 
 int
