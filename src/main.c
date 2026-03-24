@@ -7,8 +7,12 @@
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 800
+
 #define PADDLE_SIZE ((struct Vector2){ .x = 10, .y = 50 })
 #define PADDLE_SPEED 0.15
+
+#define BALL_SIZE ((struct Vector2){ .x = 10, .y = 10 })
+#define BALL_SPEED 0.15
 
 /********************/
 /*  COLOUR PALETTE  */
@@ -17,6 +21,7 @@
 #define COLOUR_BACKGROUND                                                      \
 	((struct Color){ .r = 33, .b = 33, .g = 33, .a = 255 })
 #define COLOUR_PADDLE ((struct Color){ .r = 221, .b = 221, .g = 221, .a = 255 })
+#define COLOUR_BALL ((struct Color){ .r = 221, .b = 221, .g = 221, .a = 255 })
 
 struct dimensions_t
 {
@@ -36,7 +41,7 @@ struct paddle_t
 paddle_init (float x)
 {
 	return (struct paddle_t){
-		.pos    = (struct Vector2){ .x = x, .y = WINDOW_HEIGHT / 2 },
+		.pos    = (struct Vector2){ .x = x, .y = WINDOW_HEIGHT / 2 - PADDLE_SIZE.y },
 		.speed  = PADDLE_SPEED,
 		.colour = COLOUR_PADDLE,
 		.size   = PADDLE_SIZE,
@@ -51,10 +56,39 @@ paddle_render (struct paddle_t *paddle)
 	                paddle->colour);
 }
 
+struct ball_t
+{
+	struct Color colour;
+	float speed;
+	struct Vector2 pos;
+	struct Vector2 size;
+};
+
+struct ball_t
+ball_init (void)
+{
+	return (struct ball_t){
+		.pos    = (struct Vector2){ .x = WINDOW_WIDTH / 2 - BALL_SIZE.x,
+		                            .y = WINDOW_HEIGHT / 2 - BALL_SIZE.y },
+		.speed  = BALL_SPEED,
+		.size   = BALL_SIZE,
+		.colour = COLOUR_BALL,
+	};
+}
+
+void
+ball_render (struct ball_t *ball)
+{
+	DrawRectangleV (ball->pos,
+	                (struct Vector2){ .x = ball->size.x, .y = ball->size.y },
+	                ball->colour);
+}
+
 struct game_t
 {
 	struct Color bg_colour;
 	struct paddle_t paddle_player, paddle_ai;
+	struct ball_t ball;
 };
 
 struct game_t
@@ -64,6 +98,7 @@ game_init (void)
 		.bg_colour     = COLOUR_BACKGROUND,
 		.paddle_player = paddle_init (0),
 		.paddle_ai     = paddle_init (WINDOW_WIDTH - PADDLE_SIZE.x),
+		.ball          = ball_init (),
 	};
 }
 
@@ -86,6 +121,7 @@ game_render (struct game_t *game)
 	ClearBackground (COLOUR_BACKGROUND);
 	paddle_render (&game->paddle_player);
 	paddle_render (&game->paddle_ai);
+	ball_render (&game->ball);
 }
 
 int
