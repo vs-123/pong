@@ -23,11 +23,11 @@
 
 * *DYNAMIC PARTICLE SYSTEM* {em} A custom burst-emitter is triggered upon paddle impact. It manages a fixed window array of particles with randomised vectors and linear life fade to provide visual impact without dynamic memory allocation.
 
-* *MACRO EXPANDED DISPATCHERS* {em} Update and Render cycles are handled via X-Macros. This provides a single source of truth for screen registration and hence reduces boilerplate and potential mapping errors.
+* *MACRO EXPANDED DISPATCHERS* {em} Update and Render cycles are handled via X-Macros. This provides a single source-of-truth for screen registration and hence reduces boilerplate and potential mapping errors.
 
-* *ADAPTIVE PADDLE PHYSICS* {em} The ball's reflection angle is determined by a hit factor calculation. The impact point relative to the paddle's center is normalised to allow the player to aim their shots.
+* *ADAPTIVE PADDLE PHYSICS* {em} The ball's reflection angle is determined by a hit-factor calculation. The impact point relative to the paddle's center is normalised to allow the player to aim their shots.
 
-* *MINIMALIST C99 BASE* {em} The project is written with zero external dependencies beyond Raylib and standard headers. This makes the game portable across major operating systems and provides good raw execution speed.
+* *MINIMALIST C99 BASE* {em} The project is written with zero external dependencies beyond Raylib and standard headers. This makes the game portable across major operating systems and provides great raw execution speed.
 
 == BUILD INSTRUCTIONS
 
