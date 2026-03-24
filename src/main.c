@@ -261,7 +261,17 @@ game_pong_update (struct game_t *game)
 		{
 		case COLLISION_AI:
 		case COLLISION_PLAYER:
-			game->ball.speed.x *= -1.0f;
+			{
+				struct paddle_t *paddle = (collision_entity == COLLISION_PLAYER)
+				                              ? &game->paddle_player
+				                              : &game->paddle_ai;
+				float hit_factor        = 0;
+
+				game->ball.speed.x *= -1.0f;
+				hit_factor = (game->ball.pos.y + (game->ball.size.y / 2))
+				             - (paddle->pos.y + (paddle->size.y / 2));
+				game->ball.speed.y = (hit_factor / (paddle->size.y / 2)) * 0.05f;
+			}
 			break;
 
 		case COLLISION_HORIZONTAL_WALL:
@@ -307,7 +317,21 @@ void
 game_game_over_render (struct game_t *game)
 {
 	ClearBackground (COLOUR_BACKGROUND);
-	DrawText ("Game Over!", 0, 0, 72, RED);
+
+	int title_width    = MeasureText ("GAME OVER", 80);
+	int sub_width = MeasureText ("Press R to Restart", 20);
+
+	DrawText ("GAME OVER",
+	          (WINDOW_WIDTH / 2) - (title_width / 2),
+	          (WINDOW_HEIGHT / 2) - 50,
+	          80,
+	          RED);
+
+	DrawText ("Press R to Restart",
+	          (WINDOW_WIDTH / 2) - (sub_width / 2),
+	          (WINDOW_HEIGHT / 2) + 40,
+	          20,
+	          RAYWHITE);
 }
 
 void
@@ -389,7 +413,7 @@ main (void)
 	InitWindow (WINDOW_WIDTH, WINDOW_HEIGHT, "Pong");
 	seed               = time (NULL);
 	struct game_t game = game_init ();
-	game.screen        = SCREEN_GAME_OVER;
+	/* game.screen        = SCREEN_GAME_OVER; */
 
 	while (!WindowShouldClose ())
 		{
