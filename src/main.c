@@ -142,11 +142,11 @@ game_handle_input (struct game_t *game)
 
 enum collision_t
 {
-	ENTITY_HORIZONTAL_WALL,
-	ENTITY_VERTICAL_WALL,
-	ENTITY_PLAYER,
-	ENTITY_AI,
-	ENTITY_NONE,
+	COLLISION_HORIZONTAL_WALL,
+	COLLISION_VERTICAL_WALL,
+	COLLISION_PLAYER,
+	COLLISION_AI,
+	COLLISION_NONE,
 };
 
 enum collision_t
@@ -175,24 +175,24 @@ game_ball_collides_what (struct game_t *game)
 
 	if (CheckCollisionRecs (ball_rect, ai_rect))
 		{
-			return ENTITY_AI;
+			return COLLISION_AI;
 		}
 	if (CheckCollisionRecs (ball_rect, player_rect))
 		{
-			return ENTITY_PLAYER;
+			return COLLISION_PLAYER;
 		}
 	if (game->ball.pos.y <= 0
 	    || (game->ball.pos.y + game->ball.size.y) >= WINDOW_HEIGHT)
 		{
-			return ENTITY_VERTICAL_WALL;
+			return COLLISION_VERTICAL_WALL;
 		}
 	if (game->ball.pos.x <= 0
 	    || (game->ball.pos.x + game->ball.size.x) >= WINDOW_WIDTH)
 		{
-			return ENTITY_HORIZONTAL_WALL;
+			return COLLISION_HORIZONTAL_WALL;
 		}
 
-	return ENTITY_NONE;
+	return COLLISION_NONE;
 }
 
 void
@@ -204,20 +204,20 @@ game_update (struct game_t *game)
 
 	switch (collision_entity)
 		{
-		case ENTITY_AI:
-		case ENTITY_PLAYER:
+		case COLLISION_AI:
+		case COLLISION_PLAYER:
 			game->ball.speed.x *= -1.0f;
 			break;
 
-		case ENTITY_HORIZONTAL_WALL:
+		case COLLISION_HORIZONTAL_WALL:
 			game->ball.speed.x *= -1.0f;
 			break;
 
-		case ENTITY_VERTICAL_WALL:
+		case COLLISION_VERTICAL_WALL:
 			game->ball.speed.y *= -1.0f;
 			break;
 
-		case ENTITY_NONE:
+		case COLLISION_NONE:
 			break;
 		}
 
