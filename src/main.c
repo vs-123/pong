@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -139,38 +140,85 @@ game_handle_input (struct game_t *game)
 		}
 }
 
+enum collision_t
+{
+	ENTITY_HORIZONTAL_WALL,
+	ENTITY_VERTICAL_WALL,
+	ENTITY_PLAYER,
+	ENTITY_AI,
+	ENTITY_NONE,
+};
+
+enum collision_t
+game_ball_collides_what (struct game_t *game)
+{
+	struct Rectangle ball_rect = {
+		game->ball.pos.x,
+		game->ball.pos.y,
+		game->ball.size.x,
+		game->ball.size.y,
+	};
+
+	struct Rectangle ai_rect = {
+		game->paddle_ai.pos.x,
+		game->paddle_ai.pos.y,
+		game->paddle_ai.size.x,
+		game->paddle_ai.size.y,
+	};
+
+	struct Rectangle player_rect = {
+		game->paddle_player.pos.x,
+		game->paddle_player.pos.y,
+		game->paddle_player.size.x,
+		game->paddle_player.size.y,
+	};
+
+	if (CheckCollisionRecs (ball_rect, ai_rect))
+		{
+			return ENTITY_AI;
+		}
+	if (CheckCollisionRecs (ball_rect, player_rect))
+		{
+			return ENTITY_PLAYER;
+		}
+	if (game->ball.pos.y <= 0
+	    || (game->ball.pos.y + game->ball.size.y) >= WINDOW_HEIGHT)
+		{
+			return ENTITY_VERTICAL_WALL;
+		}
+	if (game->ball.pos.x <= 0
+	    || (game->ball.pos.x + game->ball.size.x) >= WINDOW_WIDTH)
+		{
+			return ENTITY_HORIZONTAL_WALL;
+		}
+
+	return ENTITY_NONE;
+}
+
 void
 game_update (struct game_t *game)
 {
 	ball_update (&game->ball);
 
-	if (CheckCollisionRecs (
-	        (struct Rectangle){
-	            game->ball.pos.x,
-	            game->ball.pos.y,
-	            game->ball.size.x,
-	            game->ball.size.y,
-	        },
-	        (struct Rectangle){ game->paddle_ai.pos.x,
-	                            game->paddle_ai.pos.y,
-	                            game->paddle_ai.size.x,
-	                            game->paddle_ai.size.y })
-	    ||
+	enum collision_t collision_entity = game_ball_collides_what (game);
 
-	    CheckCollisionRecs (
-	        (struct Rectangle){
-	            game->ball.pos.x,
-	            game->ball.pos.y,
-	            game->ball.size.x,
-	            game->ball.size.y,
-	        },
-	        (struct Rectangle){ game->paddle_player.pos.x,
-	                            game->paddle_player.pos.y,
-	                            game->paddle_player.size.x,
-	                            game->paddle_player.size.y }))
+	switch (collision_entity)
 		{
-			game->ball.speed.x = -game->ball.speed.x;
-			game->ball.speed.y = -game->ball.speed.y;
+		case ENTITY_AI:
+		case ENTITY_PLAYER:
+			game->ball.speed.x *= -1.0f;
+			break;
+
+		case ENTITY_HORIZONTAL_WALL:
+			game->ball.speed.x *= -1.0f;
+			break;
+
+		case ENTITY_VERTICAL_WALL:
+			game->ball.speed.y *= -1.0f;
+			break;
+
+		case ENTITY_NONE:
+			break;
 		}
 
 	if (game->ball.pos.y != game->paddle_ai.pos.y)
@@ -181,7 +229,6 @@ game_update (struct game_t *game)
 				}
 			else
 				{
-
 					game->paddle_ai.pos.y -= game->paddle_ai.speed;
 				}
 		}
