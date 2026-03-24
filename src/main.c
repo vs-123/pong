@@ -23,6 +23,8 @@
 
 #define BALL_SIZE ((struct Vector2){ .x = 10, .y = 10 })
 
+#define MAX_PARTICLES 100
+
 /********************/
 /*  COLOUR PALETTE  */
 /********************/
@@ -88,12 +90,21 @@ enum collision_t
 	COLLISION_NONE,
 };
 
+struct particle_t
+{
+	Vector2 pos;
+	Vector2 speed;
+	float life;
+	bool active;
+};
+
 struct game_t
 {
 	struct Color bg_colour;
 	struct paddle_t paddle_player, paddle_ai;
 	struct ball_t ball;
 	enum screen_t screen;
+	struct particle_t particles[MAX_PARTICLES];
 };
 
 struct game_t game_init (void);
@@ -114,6 +125,10 @@ void game_pong_update (struct game_t *game);
 
 void game_pong_render (struct game_t *game);
 
+void game_spawn_particles (struct game_t *game, Vector2 pos, float direction);
+
+void game_update_particles (struct game_t *game);
+
 void game_menu_handle_input (struct game_t *game);
 
 void game_menu_update (struct game_t *game);
@@ -127,7 +142,7 @@ void game_update (struct game_t *game);
 void game_render (struct game_t *game);
 
 /********************/
-/*  IMPLEMENTATION  */
+/* IMPLEMENTATION  */
 /********************/
 
 struct paddle_t
@@ -308,6 +323,7 @@ void
 game_pong_update (struct game_t *game)
 {
 	ball_update (&game->ball);
+	game_update_particles (game);
 
 	enum collision_t collision_entity = game_ball_collides_what (game);
 
@@ -335,6 +351,9 @@ game_pong_update (struct game_t *game)
 
 				game->ball.speed.y = hit_normalised * BALL_SPEED * 0.8f;
 				game->ball.speed.x *= -1.05f;
+
+				float p_dir = (collision_entity == COLLISION_PLAYER) ? 1.0f : -1.0f;
+				game_spawn_particles (game, game->ball.pos, p_dir);
 			}
 			break;
 
@@ -366,6 +385,15 @@ void
 game_pong_render (struct game_t *game)
 {
 	ClearBackground (COLOUR_BACKGROUND);
+	for (int i = 0; i < MAX_PARTICLES; i++)
+		{
+			if (game->particles[i].active)
+				{
+					DrawRectangleV (game->particles[i].pos,
+					                (Vector2){ 4, 4 },
+					                Fade (COLOUR_BALL, game->particles[i].life));
+				}
+		}
 	paddle_render (&game->paddle_player);
 	paddle_render (&game->paddle_ai);
 	ball_render (&game->ball);
@@ -502,6 +530,48 @@ game_render (struct game_t *game)
 			break;
 		}
 #undef AS_RENDER_CASE
+}
+
+void
+game_spawn_particles (struct game_t *game, Vector2 position, float direction)
+{
+	for (int i = 0; i < 42; i++)
+		{
+			for (int j = 0; j < MAX_PARTICLES; j++)
+				{
+					if (!game->particles[j].active)
+						{
+							game->particles[j].active = true;
+							game->particles[j].pos    = position;
+							game->particles[j].life   = 1.0f;
+
+							float speed_x              = (float)ystar_between (&seed, 50, 400);
+							game->particles[j].speed.x = speed_x * direction;
+							game->particles[j].speed.y = (float)ystar_between (&seed, -200, 200);
+							break;
+						}
+				}
+		}
+}
+
+void
+game_update_particles (struct game_t *game)
+{
+	float dt = GetFrameTime ();
+	for (int i = 0; i < MAX_PARTICLES; i++)
+		{
+			if (game->particles[i].active)
+				{
+					game->particles[i].pos.x += game->particles[i].speed.x * dt;
+					game->particles[i].pos.y += game->particles[i].speed.y * dt;
+					game->particles[i].life -= 2.0f * dt;
+
+					if (game->particles[i].life <= 0)
+						{
+							game->particles[i].active = false;
+						}
+				}
+		}
 }
 
 int
