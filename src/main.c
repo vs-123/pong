@@ -1,5 +1,9 @@
-#include "raylib.h"
 #include <stdio.h>
+#include <time.h>
+
+#define YSTAR_IMPLEMENTATION
+#include "raylib.h"
+#include "ystar.h"
 
 /***************/
 /*  CONSTANTS  */
@@ -12,7 +16,6 @@
 #define PADDLE_SPEED 0.15
 
 #define BALL_SIZE ((struct Vector2){ .x = 10, .y = 10 })
-#define BALL_SPEED 0.15
 
 /********************/
 /*  COLOUR PALETTE  */
@@ -22,6 +25,12 @@
 	((struct Color){ .r = 33, .b = 33, .g = 33, .a = 255 })
 #define COLOUR_PADDLE ((struct Color){ .r = 221, .b = 221, .g = 221, .a = 255 })
 #define COLOUR_BALL ((struct Color){ .r = 221, .b = 221, .g = 221, .a = 255 })
+
+/*************/
+/*  GLOBALS  */
+/*************/
+
+uint64_t seed = 0;
 
 struct dimensions_t
 {
@@ -59,7 +68,7 @@ paddle_render (struct paddle_t *paddle)
 struct ball_t
 {
 	struct Color colour;
-	float speed;
+	struct Vector2 speed;
 	struct Vector2 pos;
 	struct Vector2 size;
 };
@@ -67,10 +76,18 @@ struct ball_t
 struct ball_t
 ball_init (void)
 {
+	Vector2 ball_speed = { 0 };
+
+	uint32_t d1 = ystar_between (&seed, 10, 100);
+	uint32_t d2 = ystar_between (&seed, 10, 100);
+
+	ball_speed.x = 1.0f / d1;
+	ball_speed.y = 1.0f / d2;
+
 	return (struct ball_t){
 		.pos    = (struct Vector2){ .x = WINDOW_WIDTH / 2 - BALL_SIZE.x,
 		                            .y = WINDOW_HEIGHT / 2 - BALL_SIZE.y },
-		.speed  = BALL_SPEED,
+		.speed  = ball_speed,
 		.size   = BALL_SIZE,
 		.colour = COLOUR_BALL,
 	};
@@ -82,6 +99,13 @@ ball_render (struct ball_t *ball)
 	DrawRectangleV (ball->pos,
 	                (struct Vector2){ .x = ball->size.x, .y = ball->size.y },
 	                ball->colour);
+}
+
+void
+ball_update (struct ball_t *ball)
+{
+	ball->pos.x += ball->speed.x;
+	ball->pos.y += ball->speed.y;
 }
 
 struct game_t
@@ -116,6 +140,24 @@ game_handle_input (struct game_t *game)
 }
 
 void
+game_update (struct game_t *game)
+{
+	ball_update (&game->ball);
+	if (game->ball.pos.y != game->paddle_ai.pos.y)
+		{
+			if (game->ball.pos.y > game->paddle_ai.pos.y)
+				{
+					game->paddle_ai.pos.y += game->paddle_ai.speed;
+				}
+			else
+				{
+
+					game->paddle_ai.pos.y -= game->paddle_ai.speed;
+				}
+		}
+}
+
+void
 game_render (struct game_t *game)
 {
 	ClearBackground (COLOUR_BACKGROUND);
@@ -128,12 +170,14 @@ int
 main (void)
 {
 	InitWindow (WINDOW_WIDTH, WINDOW_HEIGHT, "Pong -- vs-123");
+	seed               = time (NULL);
 	struct game_t game = game_init ();
 
 	while (!WindowShouldClose ())
 		{
 			BeginDrawing ();
 			game_handle_input (&game);
+			game_update (&game);
 			game_render (&game);
 			EndDrawing ();
 		}
