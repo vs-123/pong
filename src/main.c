@@ -231,7 +231,8 @@ game_update (struct game_t *game)
 			break;
 
 		case COLLISION_HORIZONTAL_WALL:
-			game->ball.speed.x *= -1.0f;
+			game->ball.speed.x *= 0;
+			game->ball.speed.y *= 0;
 			break;
 
 		case COLLISION_VERTICAL_WALL:
