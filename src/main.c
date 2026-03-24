@@ -579,9 +579,8 @@ main (void)
 {
 	seed               = time (NULL);
 	struct game_t game = game_init ();
-	game.screen        = SCREEN_PONG;
 
-	InitWindow (WINDOW_WIDTH, WINDOW_HEIGHT, "Pong");
+	InitWindow (WINDOW_WIDTH, WINDOW_HEIGHT, "Pong -- vs-123");
 	SetTargetFPS (60);
 
 	while (!WindowShouldClose ())
