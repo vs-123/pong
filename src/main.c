@@ -16,7 +16,9 @@
 
 #define PADDLE_SIZE ((struct Vector2){ .x = 10, .y = 50 })
 
-#define PADDLE_SPEED 0.15
+#define PADDLE_SPEED 4
+
+#define BALL_SPEED 4
 
 #define BALL_SIZE ((struct Vector2){ .x = 10, .y = 10 })
 
@@ -151,11 +153,10 @@ ball_init (void)
 {
 	Vector2 ball_speed = { 0 };
 
-	int sign    = (ystar_between (&seed, 0, 2) == 1) ? -1 : 1;
-	uint32_t d1 = ystar_between (&seed, 20, 25);
+	int sign = (ystar_between (&seed, 0, 2) == 1) ? -1 : 1;
 
-	ball_speed.x = sign * (1.0f / d1);
-	ball_speed.y = ball_speed.x;
+	ball_speed.x = sign * BALL_SPEED;
+	ball_speed.y = ball_speed.x * 0.5;
 
 	return (struct ball_t){
 		.pos    = (struct Vector2){ .x = WINDOW_WIDTH / 2 - BALL_SIZE.x,
@@ -306,7 +307,7 @@ game_pong_update (struct game_t *game)
 				game->ball.speed.x *= -1.0f;
 				hit_factor = (game->ball.pos.y + (game->ball.size.y / 2))
 				             - (paddle->pos.y + (paddle->size.y / 2));
-				game->ball.speed.y = (hit_factor / (paddle->size.y / 2)) * 0.05f;
+				game->ball.speed.y = (hit_factor / (paddle->size.y / 2)) * 2.25;
 			}
 			break;
 
@@ -470,9 +471,12 @@ game_render (struct game_t *game)
 int
 main (void)
 {
-	InitWindow (WINDOW_WIDTH, WINDOW_HEIGHT, "Pong");
 	seed               = time (NULL);
 	struct game_t game = game_init ();
+	game.screen        = SCREEN_PONG;
+
+	InitWindow (WINDOW_WIDTH, WINDOW_HEIGHT, "Pong");
+	SetTargetFPS (60);
 
 	while (!WindowShouldClose ())
 		{
