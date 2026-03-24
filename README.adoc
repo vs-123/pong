@@ -9,9 +9,9 @@
 
 *pong* utilises Raylib for hardware-accelerated rendering and a custom particle engine for dynamic visual feedback. The code takes a struct-oriented approach where the game logic, input handling and rendering are decoupled via a centralised state structure. This allows for a predictable execution flow and a stable memory footprint even during high-velocity physics calculations.
 
-//== SCREENSHOT
-//
-//image:{raw-url}/assets/pong-gameplay.png[PONG SCREENSHOT -- vs-123]
+== SCREENSHOT
+
+image:{raw-url}/assets/pong-gameplay.gif[PONG GAMEPLAY -- vs-123]
 
 == FEATURES
 
