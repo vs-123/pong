@@ -12,10 +12,8 @@
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 800
-
 #define PADDLE_SIZE ((struct Vector2){ .x = 10, .y = 50 })
 #define PADDLE_SPEED 0.15
-
 #define BALL_SIZE ((struct Vector2){ .x = 10, .y = 10 })
 
 /********************/
@@ -47,6 +45,44 @@ struct paddle_t
 	struct Vector2 size;
 };
 
+struct paddle_t paddle_init (float x);
+void paddle_render (struct paddle_t *paddle);
+
+struct ball_t
+{
+	struct Color colour;
+	struct Vector2 speed;
+	struct Vector2 pos;
+	struct Vector2 size;
+};
+
+struct ball_t ball_init (void);
+void ball_render (struct ball_t *ball);
+void ball_update (struct ball_t *ball);
+
+struct game_t
+{
+	struct Color bg_colour;
+	struct paddle_t paddle_player, paddle_ai;
+	struct ball_t ball;
+};
+
+struct game_t game_init (void);
+void game_handle_input (struct game_t *game);
+enum collision_t game_ball_collides_what (struct game_t *game);
+void game_update (struct game_t *game);
+void game_update_paddle_ai (struct game_t *game);
+void game_render (struct game_t *game);
+
+enum collision_t
+{
+	COLLISION_HORIZONTAL_WALL,
+	COLLISION_VERTICAL_WALL,
+	COLLISION_PLAYER,
+	COLLISION_AI,
+	COLLISION_NONE,
+};
+
 struct paddle_t
 paddle_init (float x)
 {
@@ -67,20 +103,12 @@ paddle_render (struct paddle_t *paddle)
 }
 
 struct ball_t
-{
-	struct Color colour;
-	struct Vector2 speed;
-	struct Vector2 pos;
-	struct Vector2 size;
-};
-
-struct ball_t
 ball_init (void)
 {
 	Vector2 ball_speed = { 0 };
 
 	int sign    = (ystar_between (&seed, 0, 2) == 1) ? -1 : 1;
-	uint32_t d1 = ystar_between (&seed, 20, 40);
+	uint32_t d1 = ystar_between (&seed, 20, 25);
 
 	ball_speed.x = sign * (1.0f / d1);
 	ball_speed.y = ball_speed.x;
@@ -110,13 +138,6 @@ ball_update (struct ball_t *ball)
 }
 
 struct game_t
-{
-	struct Color bg_colour;
-	struct paddle_t paddle_player, paddle_ai;
-	struct ball_t ball;
-};
-
-struct game_t
 game_init (void)
 {
 	return (struct game_t){
@@ -138,16 +159,16 @@ game_handle_input (struct game_t *game)
 		{
 			game->paddle_player.pos.y += game->paddle_player.speed;
 		}
-}
 
-enum collision_t
-{
-	COLLISION_HORIZONTAL_WALL,
-	COLLISION_VERTICAL_WALL,
-	COLLISION_PLAYER,
-	COLLISION_AI,
-	COLLISION_NONE,
-};
+	if (game->paddle_player.pos.y < 0)
+		{
+			game->paddle_player.pos.y = 0;
+		}
+	if (game->paddle_player.pos.y + game->paddle_player.size.y > WINDOW_HEIGHT)
+		{
+			game->paddle_player.pos.y = WINDOW_HEIGHT - game->paddle_player.size.y;
+		}
+}
 
 enum collision_t
 game_ball_collides_what (struct game_t *game)
@@ -221,16 +242,28 @@ game_update (struct game_t *game)
 			break;
 		}
 
-	if (game->ball.pos.y != game->paddle_ai.pos.y)
+	game_update_paddle_ai (game);
+}
+
+void
+game_update_paddle_ai (struct game_t *game)
+{
+	if (game->ball.pos.y > game->paddle_ai.pos.y)
 		{
-			if (game->ball.pos.y > game->paddle_ai.pos.y)
-				{
-					game->paddle_ai.pos.y += game->paddle_ai.speed;
-				}
-			else
-				{
-					game->paddle_ai.pos.y -= game->paddle_ai.speed;
-				}
+			game->paddle_ai.pos.y += game->paddle_ai.speed;
+		}
+	else
+		{
+			game->paddle_ai.pos.y -= game->paddle_ai.speed;
+		}
+
+	if (game->paddle_ai.pos.y < 0)
+		{
+			game->paddle_ai.pos.y = 0;
+		}
+	if (game->paddle_ai.pos.y + game->paddle_ai.size.y > WINDOW_HEIGHT)
+		{
+			game->paddle_ai.pos.y = WINDOW_HEIGHT - game->paddle_ai.size.y;
 		}
 }
 
