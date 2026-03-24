@@ -78,11 +78,11 @@ ball_init (void)
 {
 	Vector2 ball_speed = { 0 };
 
-	uint32_t d1 = ystar_between (&seed, 10, 100);
-	uint32_t d2 = ystar_between (&seed, 10, 100);
+	int sign    = (ystar_between (&seed, 0, 2) == 1) ? -1 : 1;
+	uint32_t d1 = ystar_between (&seed, 20, 40);
 
-	ball_speed.x = 1.0f / d1;
-	ball_speed.y = 1.0f / d2;
+	ball_speed.x = sign * (1.0f / d1);
+	ball_speed.y = ball_speed.x;
 
 	return (struct ball_t){
 		.pos    = (struct Vector2){ .x = WINDOW_WIDTH / 2 - BALL_SIZE.x,
@@ -143,6 +143,36 @@ void
 game_update (struct game_t *game)
 {
 	ball_update (&game->ball);
+
+	if (CheckCollisionRecs (
+	        (struct Rectangle){
+	            game->ball.pos.x,
+	            game->ball.pos.y,
+	            game->ball.size.x,
+	            game->ball.size.y,
+	        },
+	        (struct Rectangle){ game->paddle_ai.pos.x,
+	                            game->paddle_ai.pos.y,
+	                            game->paddle_ai.size.x,
+	                            game->paddle_ai.size.y })
+	    ||
+
+	    CheckCollisionRecs (
+	        (struct Rectangle){
+	            game->ball.pos.x,
+	            game->ball.pos.y,
+	            game->ball.size.x,
+	            game->ball.size.y,
+	        },
+	        (struct Rectangle){ game->paddle_player.pos.x,
+	                            game->paddle_player.pos.y,
+	                            game->paddle_player.size.x,
+	                            game->paddle_player.size.y }))
+		{
+			game->ball.speed.x = -game->ball.speed.x;
+			game->ball.speed.y = -game->ball.speed.y;
+		}
+
 	if (game->ball.pos.y != game->paddle_ai.pos.y)
 		{
 			if (game->ball.pos.y > game->paddle_ai.pos.y)
